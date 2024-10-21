@@ -201,10 +201,11 @@
                     document.getElementById('productModal').style.display = 'none';
                     document.getElementById('orderSuccessModal').style.display = 'flex';
                     document.getElementById('orderForm').reset();
+                    console.log(email)
         
                     const emailParams = {
-                        customer_name: customerName,
-                        customer_email: email,
+                        to_name: customerName,
+                        to_email: email,
                         product_name: product['Tên sản phẩm'],
                         quantity: quantity,
                         total_price: totalPrice.toLocaleString(),
@@ -214,10 +215,10 @@
         
                     try {
                         const emailResponse = await emailjs.send('service_xbw6a0g', 'template_d0oiag5', emailParams);
+                        console.log(emailResponse)
                         console.log('Email sent successfully:', emailResponse.status, emailResponse.text);
                     } catch (emailError) {
                         console.error('Failed to send email:', emailError);
-                        // Consider adding a user-friendly notification here
                     }
                 } else {
                     throw new Error(result);
