@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thời Trang</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        (function() {
+            emailjs.init('dZKZb-tTBBtSEQX-e');
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../logo.png" alt="Logo Shop" />
+            <h1>Shop Thời Trang LT</h1>
+        </div>
+        <p>123 Đường Linh Trung, Thủ Đức TP.HCM | 0909 123 456</p>
+    </header>
+
+    <main>
+        <div class="product-list" id="productList">
+        </div>
+    </main>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Thông tin đơn hàng</h2>
+            <div class="detail">
+                <div class="product-detail">
+                    <div class="image-container">
+                        <img id="image" src="https://cdn.vuahanghieu.com/unsafe/0x900/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/product/2024/07/ao-polo-nam-lacoste-slim-fit-ph4012-031-black-mau-den-size-2-66821a556fc03-01072024095413.jpg" alt="">
+                    </div>
+                    <h2 id="productTitle"></h2>
+                    <p id="productDescription"></p>
+                    <p id="productPrice"></p>
+                    <button onclick="orderProduct()">Tiếp tục</button>
+                </div>
+                <div class="infor" style="display: none;">
+                    <form id="orderForm" onsubmit="submitOrder(event)">
+                        <div class="form-group">
+                            <input type="text" id="customerName" placeholder="Họ tên người nhận" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" placeholder="Email (nhận thông tin đơn hàng)">
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" id="customerPhone" placeholder="Số điện thoại" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" min="1" max="20" id="quantity" placeholder="Số lượng" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea type="text" id="customerAddress" placeholder="Địa chỉ giao hàng" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="orderNote" placeholder="Ghi chú"></textarea>
+                        </div>
+                        <button class="submitBtn" type="submit">Xác nhận đặt hàng</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderSuccessModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSuccessModal()">&times;</span>
+            <h2>Đặt hàng thành công!</h2>
+            <div class="content">
+                <p class="name-product"></p>
+                <p class="quantity-order"></p>
+                <p class="name-customer"></p>
+                <p class="order-total"></p>
+                <p class="address-customer"></p>
+            </div>
+            <p><i>Cảm ơn bạn đã đặt hàng. Chúng tôi sẽ liên hệ sớm nhất!</i></p>
+        </div>
+    </div>
+
+    <script>
+        const api = "https://script.google.com/macros/s/AKfycbzEX6uYyJBzXTqg-p-gDY767JUotdJ3o8-YpiYp2Bo2RIAhCpS9ABh7oZQnRL3BBnnA_g/exec";
+        let currentProducts = [];
+        const btnSubmit = document.querySelector(".submitBtn")
+        let selectedProductRow = null;
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(api);
+                const data = await response.json();
+                currentProducts = data;
+                displayProducts(data);
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        function truncateString(str, maxLength) {
+            if (str.length > maxLength) {
+                return str.slice(0, maxLength) + '...';
+            }
+            return str; 
+        }        
+
+        function displayProducts(products) {
+            const container = document.getElementById('productList');
+            container.innerHTML = products.map(product => `
+                <div class="product" onclick="openModal('${product.row}')">
+                    <div class="image-container">
+                        <img src="./img-0541.png" alt="${product['Tên sản phẩm']}">
+                    </div>
+                    <h3>${truncateString(product['Tên sản phẩm'], 20)}</h3>
+                    <p>Giá: ${product['Giá'].toLocaleString()} VND</p>
+                </div>
+            `).join('');
+        }
+
+        function openModal(row) {
+            const product = currentProducts.find(p => p.row === parseInt(row));
+            if (!product) return;
+            btnSubmit.disabled = false
+            selectedProductRow = product.row;
+            document.getElementById('productTitle').textContent = product['Tên sản phẩm'];
+            document.getElementById('productDescription').textContent = product['Mô tả'];
+            document.getElementById('productPrice').textContent = `Giá: ${product['Giá'].toLocaleString()} VND`;
+            document.getElementById('productModal').style.display = 'flex';
+            document.querySelector('.product-detail').style.display = 'block';
+            const inforSection = document.querySelector('.infor');
+            inforSection.style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
+            selectedProductRow = null;
+        }      
+
+        function closeOrderFormModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('orderSuccessModal').style.display = 'none';
+        }
+
+        function orderProduct() {
+            document.querySelector('.product-detail').style.display = 'none';
+            const inforSection = document.querySelector('.infor');
+            inforSection.style.display = 'block';
+        }
+
+        async function submitOrder(event) {
+            event.preventDefault();
+            
+            const product = currentProducts.find(p => p.row === selectedProductRow);
+            const customerName = document.getElementById('customerName').value;
+            const customerPhone = document.getElementById('customerPhone').value;
+            const customerAddress = document.getElementById('customerAddress').value;
+            const email = document.getElementById('email').value;
+            const orderNote = document.getElementById('orderNote').value;
+            const quantity = document.getElementById('quantity').value;
+            const productPrice = product['Giá'];
+            const totalPrice = productPrice * quantity;
+        
+            const btnSubmit = document.querySelector('.submitBtn');
+            btnSubmit.disabled = true;
+        
+            const formData = new FormData();
+            formData.append('action', 'order');
+            formData.append('customerName', customerName);
+            formData.append('customerPhone', customerPhone);
+            formData.append('customerAddress', customerAddress);
+            formData.append('orderNote', orderNote);
+            formData.append('quantity', quantity);
+            formData.append('productName', product['Tên sản phẩm']);
+            formData.append('productPrice', totalPrice);
+        
+            try {
+                const response = await fetch(api, {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                const result = await response.text();
+                console.log('Order response:', result);
+        
+                if (response.ok) {
+                    document.querySelector('.name-product').innerHTML = "<strong>Tên sản phẩm:</strong> " + product['Tên sản phẩm'];
+                    document.querySelector('.quantity-order').innerHTML = "<strong>Số lượng:</strong> " + quantity;
+                    document.querySelector('.name-customer').innerHTML = "<strong>Tên khách hàng:</strong> " + customerName;
+                    document.querySelector('.order-total').innerHTML = "<strong>Tổng tiền:</strong> " + totalPrice.toLocaleString() + " VND";
+                    document.querySelector('.address-customer').innerHTML = "<strong>Địa chỉ giao hàng:</strong> " + customerAddress;
+        
+                    document.getElementById('productModal').style.display = 'none';
+                    document.getElementById('orderSuccessModal').style.display = 'flex';
+                    document.getElementById('orderForm').reset();
+        
+                    const emailParams = {
+                        customer_name: customerName,
+                        customer_email: email,
+                        product_name: product['Tên sản phẩm'],
+                        quantity: quantity,
+                        total_price: totalPrice.toLocaleString(),
+                        customer_phone: customerPhone,
+                        customer_address: customerAddress
+                    };
+        
+                    try {
+                        const emailResponse = await emailjs.send('service_xbw6a0g', 'template_d0oiag5', emailParams);
+                        console.log('Email sent successfully:', emailResponse.status, emailResponse.text);
+                    } catch (emailError) {
+                        console.error('Failed to send email:', emailError);
+                        // Consider adding a user-friendly notification here
+                    }
+                } else {
+                    throw new Error(result);
+                }
+            } catch (error) {
+                console.error('Error placing order:', error);
+                alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!');
+            } finally {
+                btnSubmit.disabled = false;
+                document.body.style.overflow = 'scroll';
+            }
+        }
+                   
+        loadProducts();
+    </script>
+</body>
+</html>
