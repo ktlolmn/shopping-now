@@ -189,7 +189,6 @@
                 });
         
                 const result = await response.text();
-                console.log('Order response:', result);
         
                 if (response.ok) {
                     document.querySelector('.name-product').innerHTML = "<strong>Tên sản phẩm:</strong> " + product['Tên sản phẩm'];
@@ -215,7 +214,6 @@
         
                     try {
                         const emailResponse = await emailjs.send('service_xbw6a0g', 'template_d0oiag5', emailParams);
-                        console.log(emailResponse)
                         console.log('Email sent successfully:', emailResponse.status, emailResponse.text);
                     } catch (emailError) {
                         console.error('Failed to send email:', emailError);
